@@ -38,6 +38,7 @@ class Solver:
         # self.setMasks(grid)   # set the flags in the boolean masks to match the starter sudoku
     
         # grid_copy = np.copy(grid)
+        print(self.grid)
         error_check = self.solve(0, 0)  # initial call to solve() starts at grid position 0,0 
 
         return self.grid.flatten().tolist()
