@@ -4,7 +4,6 @@ from flask import request
 from flask import Flask, render_template
 
 app = Flask(__name__)
-solver = None
 
 # render home page
 @app.route('/')
