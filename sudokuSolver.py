@@ -208,4 +208,5 @@ class Solver:
                 self.grid[row, col] = value
                 self.setBooleanMasks(row, col, value)
 
+        print(self.grid)
         return isAllowed
