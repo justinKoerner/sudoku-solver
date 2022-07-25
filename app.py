@@ -5,6 +5,8 @@ from flask import Flask, render_template
 
 app = Flask(__name__)
 
+solver = sudokuSolver.Solver()
+
 # render home page
 @app.route('/')
 def index():
