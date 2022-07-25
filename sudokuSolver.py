@@ -210,3 +210,9 @@ class Solver:
 
         print(self.grid)
         return isAllowed
+
+
+    def clear(self):
+        if self.grid != None:
+            self.grid.fill(0)
+    

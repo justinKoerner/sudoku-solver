@@ -10,9 +10,10 @@ solver = sudokuSolver.Solver()
 # render home page
 @app.route('/')
 def index():
-    global solver
-    solver = None
-    solver = sudokuSolver.Solver()
+    # global solver
+    # solver = None
+    # solver = sudokuSolver.Solver()
+    solver.clear()
     print("reloaded")
     return render_template('index.html')
 
