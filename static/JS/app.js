@@ -34,11 +34,13 @@ table.addEventListener('input', (e) => {
     if ((!Number.isInteger(numberInput)) && event.value !== '') {
         eventError(event);
         event.title = "Input has to be a digit between 1 and 9."
+        console.log("Not a number");
     } 
     // check if number is in range (1-9) and only 1 digit
     else if (numberInput < 1 || numberInput > 9 || event.value.length > 1) {
         eventError(event);
         event.title = "Input has to be a digit between 1 and 9."
+        console.log("Not in range")
     } 
     // otherwise the input is a valid number
     else {
@@ -56,6 +58,7 @@ table.addEventListener('input', (e) => {
                     if (!isAllowed) {
                         eventError(event)
                         event.title = 'This number is already present in the same row, column, and/or square.'
+                        console.log("Conflict");
                     }
                 })
         // } else {
@@ -226,7 +229,8 @@ async function entryValidation(row, col, value) {
         row: row,
         col: col 
     };
-
+    
+    console.log(entryObj);
     let entryObjJson = JSON.stringify(entryObj);
     let validationObj = await $.ajax({
         url: "/check",
