@@ -5,12 +5,13 @@ from flask import Flask, render_template
 
 app = Flask(__name__)
 
-solver = None
+solver = sudokuSolver.Solver()
 
 # render home page
 @app.route('/')
 def index():
     global solver
+    solver = None
     solver = sudokuSolver.Solver()
     print("reloaded")
     return render_template('index.html')
@@ -18,7 +19,6 @@ def index():
 # check if value inputted by client conflicts with another value
 @app.route('/check', methods=['POST'])
 def check():
-    global solver
     inputVal = request.get_json()
     entryObj = json.loads(inputVal)
 
@@ -31,7 +31,6 @@ def check():
 # retrieve sudoku input from /test
 @app.route('/test', methods=['POST'])
 def test():
-    global solver
     # output = request.get_json()     # get the json from client
     # result = json.loads(output)     # this converts the json output to a python dictionary
     
