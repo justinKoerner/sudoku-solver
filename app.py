@@ -12,6 +12,7 @@ solver = sudokuSolver.Solver()
 def index():
     global solver
     solver = sudokuSolver.Solver()
+    print("reloaded")
     return render_template('index.html')
 
 # check if value inputted by client conflicts with another value
