@@ -213,6 +213,5 @@ class Solver:
 
 
     def clear(self):
-        if self.grid != None:
-            self.grid.fill(0)
+        self.grid.fill(0)
     
