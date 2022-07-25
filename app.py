@@ -22,6 +22,7 @@ def check():
     inputVal = request.get_json()
     entryObj = json.loads(inputVal)
 
+    print(solver)
     success = solver.addEntry(entryObj.get("row"), entryObj.get("col"), entryObj.get("value"))
 
     validationDict = {"success": success}
