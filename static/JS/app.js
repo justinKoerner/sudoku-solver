@@ -149,39 +149,6 @@ solutionButton.addEventListener('click', (e) => {
     }
 })
 
-// open the modal when clicking "help"
-// helpButton.addEventListener('click', () => {
-//     const modal = document.querySelector(helpButton.dataset.modalTarget); // selects the modal that is connected to the help button via 
-//                                                                           // the data-modal-target selector id (the selector id of the button and id of the modal match)
-//     openModal(modal);
-// })
-
-// // close modal when clicking the close button on the modal
-// closeHelpButton.addEventListener('click', () => {
-//     const modal = closeHelpButton.closest(".modal") // selects the closest parent element with the .modal class
-//     closeModal(modal);
-// })
-
-// // close active modal when clicking anywhere on the overlay
-// overlay.addEventListener('click', () => {
-//     const modal = document.querySelector(".modal.active");
-//     closeModal(modal);
-// })
-
-// adds "active" class so that modal and overlay appear on screen
-// function openModal(modal) {
-//     if (modal == null) return; // in case this was called without the modal
-//     modal.classList.add("active");
-//     overlay.classList.add("active");
-// }
-
-// // removes "active" class so that modal and overlay disappear from screen
-// function closeModal(modal) {
-//     if (modal == null) return; // in case this was called without the modal
-//     modal.classList.remove("active");
-//     overlay.classList.remove("active");
-// }
-
 function eventError(event) {
     event.style.backgroundColor = errorColour
     hintButton.disabled = true;
