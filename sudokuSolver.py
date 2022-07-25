@@ -212,6 +212,10 @@ class Solver:
         return isAllowed
 
 
+    # resets the grid and masks
     def clear(self):
         self.grid.fill(0)
+        self.row_mask.fill(0)
+        self.column_mask.fill(0)
+        self.square_mask.fill(0)
     
