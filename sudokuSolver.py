@@ -40,35 +40,10 @@ class Solver:
         # grid_copy = np.copy(grid)
         # print(self.grid)
         error_check = self.solve(0, 0)  # initial call to solve() starts at grid position 0,0 
+        # print(self.grid)
 
         return self.grid.flatten().tolist()
-
-
-    def setMasks(self, grid):
-        n, d = grid.shape
-        for i in range(n):
-                for j in range(d):
-                    if grid[i, j] != 0:
-                        self.row_mask[i, grid[i, j] - 1] = True      # grid[i, j] - 1: if let's say grid[1, 2] = 5, then 
-                        self.column_mask[j, grid[i, j] - 1] = True   # the 4th entry (5-1) in the mask should be set to true
-
-                        square_num = self.offset * (i // self.offset) + j // self.offset    # square number (ranging from top left (=0) to bottom right (=size))
-                        self.square_mask[square_num, grid[i, j] - 1] = True
-
-    # update masks (-1 to convert from value to index)
-    def setEntry(self, row, col, square_num, value):
-        self.grid[row, col] = value
-        self.row_mask[row, value - 1]= True
-        self.column_mask[col, value - 1]= True
-        self.square_mask[square_num, value - 1] = True
-
-    # resets entry value to 0 and resets appropriate mask entries to False
-    def resetEntry(self, row, col, square_num, value):
-        self.grid[row, col] = 0
-        self.row_mask[row, value - 1]= False
-        self.column_mask[col, value - 1]= False
-        self.square_mask[square_num, value - 1] = False
-        
+    
 
     # Recursively solve the sudoku by trying the first possible digit until encountering an error
     # Backtrack to the source of the error and try the next possible digit
@@ -149,46 +124,38 @@ class Solver:
                 return error
 
             return error
-
-    
-    # Client Helper Methods
-    
-    # Checks if entry value is allowed
-    # Returns true if value is not present in row, col and square; returns false otherwise
-    def checkEntry(self, row, col, value):
-        square_num = self.offset * (row // self.offset) + col // self.offset
-        return not (self.row_mask[row, value - 1] | self.column_mask[col, value - 1] | self.square_mask[square_num, value - 1])
-
     
     # Updates boolean masks when an entry is added/changed
-    def setBooleanMasks(self, row, col, value):
-        self.row_mask[row, value - 1] = True      # grid[i, j] - 1: if let's say grid[1, 2] = 5, then 
-        self.column_mask[col, value - 1] = True   # the 4th entry (5-1) in the mask should be set to true
-
-        square_num = self.offset * (row // self.offset) + col // self.offset    # square number (ranging from top left (=0) to bottom right (=size))
-        self.square_mask[square_num, value - 1] = True
+    def setEntry(self, row, col, square_num, value):
+        self.grid[row, col] = value
+        self.row_mask[row, value - 1]= True                 # grid[i, j] - 1: if let's say grid[1, 2] = 5, then 
+        self.column_mask[col, value - 1]= True              # mask[5 - 1] will be changed -> the appropritate mask index is value - 1
+        self.square_mask[square_num, value - 1] = True      # square number (ranging from top left (=0) to bottom right (=size))
     
     # Resets masks when an entry is deleted/changed
-    def resetMasks(self, row, col, value):
-        self.row_mask[row, value - 1]= False
-        self.column_mask[col, value - 1]= False
-
-        square_num = self.offset * (row // self.offset) + col // self.offset
+    def resetEntry(self, row, col, square_num, value):
+        self.grid[row, col] = 0
+        self.row_mask[row, value - 1] = False
+        self.column_mask[col, value - 1] = False
         self.square_mask[square_num, value - 1] = False
+
+
+    # Helper Methods
 
     # Adds value to the entry at grid[row, col]
     # Returns true if add was successful
     # Returns false if value conflicts with another value
     def addEntry(self, row, col, value):
         currentValue = self.grid[row, col]
+        square_num = self.offset * (row // self.offset) + col // self.offset
 
         # If cell is empty, value is 0
         # In that case we don't need to check if the new value is allowed, we just reset the current value
         if value == 0:
             if currentValue != 0:
-                self.resetMasks(row, col, self.grid[row, col])
+                self.resetEntry(row, col, square_num, currentValue)
 
-            self.grid[row, col] = value
+            self.grid[row, col] = 0
             isAllowed = True
 
         # If the value is the same, we don't need to change anything    
@@ -198,19 +165,22 @@ class Solver:
         # If it is a new entry, check if there is a conflict
         # If no conflict, add the value to the grid at grid[row, col]
         else :
-            isAllowed = self.checkEntry(row, col, value)
+            isAllowed = self.checkEntry(row, col, square_num, value)
 
             if isAllowed:
                 # CurrentValue = self.grid[row, col]
                 if currentValue != 0:
-                    self.resetMasks(row, col, currentValue)
+                    self.resetEntry(row, col, square_num, currentValue)
 
-                self.grid[row, col] = value
-                self.setBooleanMasks(row, col, value)
+                self.setEntry(row, col, square_num, value)
 
         return isAllowed
 
-
+    # Checks if entry value is allowed
+    # Returns true if value is not present in row, col and square; returns false otherwise
+    def checkEntry(self, row, col, square_num, value):
+        return not (self.row_mask[row, value - 1] | self.column_mask[col, value - 1] | self.square_mask[square_num, value - 1])
+    
     # Resets the grid and masks
     def clear(self):
         self.grid.fill(0)
@@ -218,3 +188,16 @@ class Solver:
         self.column_mask.fill(0)
         self.square_mask.fill(0)
     
+
+    # Method may be used for alternative implementation in which entire starter Sudoku grid is sent at once
+    # Set masks in one go if entire starter Sudoku is transferred at once
+    # def setMasks(self, grid):
+    #     n, d = grid.shape
+    #     for i in range(n):
+    #             for j in range(d):
+    #                 if grid[i, j] != 0:
+    #                     self.row_mask[i, grid[i, j] - 1] = True      # grid[i, j] - 1: if let's say grid[1, 2] = 5, then 
+    #                     self.column_mask[j, grid[i, j] - 1] = True   # the 4th entry (5-1) in the mask should be set to true
+
+    #                     square_num = self.offset * (i // self.offset) + j // self.offset    # square number (ranging from top left (=0) to bottom right (=size))
+    #                     self.square_mask[square_num, grid[i, j] - 1] = True    
