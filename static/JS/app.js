@@ -26,6 +26,7 @@ table.addEventListener('input', (e) => {
     // check if number is in range (1-9) and only 1 digit
     else if (numberInput < 1 || numberInput > 9 || event.value.length > 1) {
         eventError(event);
+        // event.title = '';
         event.title = "Input has to be a digit between 1 and 9."
     } 
     // otherwise the input is a valid number
@@ -61,14 +62,16 @@ table.addEventListener('input', (e) => {
 // If hint button was clicked, hovering over a cell will turn the cell green 
 table.addEventListener('mouseover', (e) => {
     e.preventDefault();
+    let event = e.target;
+
     if (solved && !display) {
-        let event = e.target;
+        // let event = e.target;
         // Only change the background color if the cell is empty and it is of type "INPUT"
         if (event.nodeName == 'INPUT'  && event.value === '') {
             event.style.backgroundColor = 'rgb(121, 187, 103)'
             event.parentElement.style.backgroundColor = 'rgb(121, 187, 103)' // color of the TD which holds the input
         }  
-    }
+    } 
 })
 
 // If hint button was clicked, leaving the cell will turn the cell white again

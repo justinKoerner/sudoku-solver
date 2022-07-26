@@ -10,9 +10,6 @@ solver = sudokuSolver.Solver()
 # Render home page and clear Sudoku grid on reload
 @app.route('/')
 def index():
-    # global solver
-    # solver = None
-    # solver = sudokuSolver.Solver()
     solver.clear()
     print("reloaded")
     return render_template('index.html')
@@ -34,8 +31,8 @@ def check():
 def test():
     # output = request.get_json()     # get the json from client
     # result = json.loads(output)     # this converts the json output to a python dictionary
-    
     # solver = sudokuSolver.Solver()
+    
     solution = solver.solve_sudoku()           # return value is the solution
     solved_dict = {"ender": solution}
     return json.dumps(solved_dict, indent=4)   # return json-ified dictionary with solution
