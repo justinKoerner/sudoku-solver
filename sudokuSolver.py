@@ -16,7 +16,7 @@ class Solver:
         self.grid = np.zeros((self.size, self.size), dtype="int")
 
   
-    # sets up the initial grid and then solves the sudoku
+    # Initiates the solving process
     def solve_sudoku(self):
         # boolean masks and size and offset are globally accessible for simplification
 
@@ -38,7 +38,7 @@ class Solver:
         # self.setMasks(grid)   # set the flags in the boolean masks to match the starter sudoku
     
         # grid_copy = np.copy(grid)
-        print(self.grid)
+        # print(self.grid)
         error_check = self.solve(0, 0)  # initial call to solve() starts at grid position 0,0 
 
         return self.grid.flatten().tolist()
@@ -62,7 +62,7 @@ class Solver:
         self.column_mask[col, value - 1]= True
         self.square_mask[square_num, value - 1] = True
 
-    # resents entry value to 0 and resets appropriate mask entries to False
+    # resets entry value to 0 and resets appropriate mask entries to False
     def resetEntry(self, row, col, square_num, value):
         self.grid[row, col] = 0
         self.row_mask[row, value - 1]= False
@@ -70,8 +70,8 @@ class Solver:
         self.square_mask[square_num, value - 1] = False
         
 
-    # recursively solve the sudoku by trying the first possible digit until encountering an error
-    # backtrack to the source of the error and try the next possible digit
+    # Recursively solve the sudoku by trying the first possible digit until encountering an error
+    # Backtrack to the source of the error and try the next possible digit
     def solve(self, row, col):
         # reached the end of the sudoku (counter should be 0)
         if(row >= self.size):
@@ -107,30 +107,29 @@ class Solver:
                                                                                         # e.g. if the numbers 2 and 4 are not in the current entry's row, column or square, then match = [False, True, False, True]
                                                                                         # in this case, True = possible value, False = not a possible value
 
-            if(np.count_nonzero(matches) == 0):     # No possible options (all entries in matches are False) indicates something went wrong
+            if(np.count_nonzero(matches) == 0):     # no possible options (all entries in matches are False) indicates something went wrong
                 return True                         # error encountered -> start backtracking
 
             num_options = np.nonzero(matches)[0]    # extract the possbile values from matches
             num = num_options[0] + 1                # chose the first option of possible values (+1 to convert index to entry value)
 
-            # remove chosen value from options
-            # updateOptions(num_options)
+            # Remove chosen value from options
             if (len(num_options) > 1):
                 num_options = num_options[1:]
             else:
-                num_options = []    # if we tried the last possible value, then empty the list
+                num_options = []                      # if we tried the last possible value, then empty the list
 
-            self.setEntry(row, col, square_num, num)             # update the entry
-            error = self.solve(row_next, col_next)   # recursive call -> move onto next entry
+            self.setEntry(row, col, square_num, num)  # update the entry
+            error = self.solve(row_next, col_next)    # recursive call -> move onto next entry
 
-            # if we got stuck somewhere, we backtrack to this part of the code
-            # if we encounter an error, the recursive function call returns True (i.e error_check = True)
+            # If we got stuck somewhere, we backtrack to this part of the code
+            # If we encounter an error, the recursive function call returns True (i.e error_check = True)
             if (error):
                 self.resetEntry(row, col, square_num, num)  # Erase current entry
 
-                # try all options until the error is resolved or we run out of options for the current entry
-                # if all options eventually result in an error, the source of the error must be in an earlier entry
-                # in that case we backtrack to the previous entry
+                # Try all options until the error is resolved or we run out of options for the current entry
+                # Of all options eventually result in an error, the source of the error must be in an earlier entry
+                # In that case we backtrack to the previous entry
                 while(error and len(num_options) > 0):
                     num = num_options[0] + 1
                     self.setEntry(row, col, square_num, num)
@@ -142,8 +141,8 @@ class Solver:
 
                     error = self.solve(row_next, col_next) # move forward again until another error is encountered
 
-                    # if we get another error then the option we chose is wrong
-                    # erase the current entry and loop back to the start to move on to the next option
+                    # If we get another error then the option we chose is wrong
+                    # Erase the current entry and loop back to the start to move on to the next option
                     if(error):
                         self.resetEntry(row, col, square_num, num)
 
@@ -183,36 +182,36 @@ class Solver:
     def addEntry(self, row, col, value):
         currentValue = self.grid[row, col]
 
-        # if cell is empty, value is 0
-        # in that case we don't need to check if the new value is allowed, we just reset the current value
+        # If cell is empty, value is 0
+        # In that case we don't need to check if the new value is allowed, we just reset the current value
         if value == 0:
             if currentValue != 0:
                 self.resetMasks(row, col, self.grid[row, col])
+
             self.grid[row, col] = value
             isAllowed = True
 
-        # if the value is the same, we don't need to change anything    
+        # If the value is the same, we don't need to change anything    
         elif value == currentValue:
             return True
         
-        # if it is a new entry, check if there is a conflict
-        # if no conflict, add the value to the grid at grid[row, col]
+        # If it is a new entry, check if there is a conflict
+        # If no conflict, add the value to the grid at grid[row, col]
         else :
             isAllowed = self.checkEntry(row, col, value)
 
             if isAllowed:
-                # currentValue = self.grid[row, col]
+                # CurrentValue = self.grid[row, col]
                 if currentValue != 0:
                     self.resetMasks(row, col, currentValue)
 
                 self.grid[row, col] = value
                 self.setBooleanMasks(row, col, value)
 
-        print(self.grid)
         return isAllowed
 
 
-    # resets the grid and masks
+    # Resets the grid and masks
     def clear(self):
         self.grid.fill(0)
         self.row_mask.fill(0)
