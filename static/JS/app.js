@@ -138,8 +138,8 @@ solutionButton.addEventListener('click', (e) => {
 
 // If user input is erroneous, this function is called
 function eventError(event) {
-    event.style.backgroundColor = errorColour   // Sets background of affected cell to error colour
-    hintButton.disabled = true;                 // Buttons are disabled until the error is resolved
+    event.style.setProperty('background-color', errorColour, 'important') // sets background color to error colour with !important tag
+    hintButton.disabled = true;         // Buttons are disabled until the error is resolved
     solutionButton.disabled = true;
 }
 
