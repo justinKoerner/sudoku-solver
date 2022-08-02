@@ -22,6 +22,10 @@ const blocks = Array(9).fill().map(() => Array(9).fill(0));       // each row of
 
 const conflicts = new Set();        // set containing indeces of entries that are in conflict with other entries
 
+// error handling constants
+const MIN_VALUE = 1;
+const MAX_VALUE = 9;
+
 // Hanlde input changes
 table.addEventListener('input', (e) => {
     const element = e.target;
@@ -29,18 +33,18 @@ table.addEventListener('input', (e) => {
 
     // check if input is an integer
     // title is set to appropriate message if constraint is broken
-    if ((!Number.isInteger(numberInput)) && element.value !== '') {
-        elementError(element);
-        element.title = "Input has to be a number"
-    } 
-    // check if number is in range (1-9) and only 1 digit
-    else if (numberInput < 1 || numberInput > 9 || element.value.length > 1) {
-        elementError(element);
-        // event.title = '';
-        element.title = "Input has to be a digit between 1 and 9"
-    } 
+    // if ((!Number.isInteger(numberInput)) && element.value !== '') {
+    //     elementError(element);
+    //     element.title = "Input has to be a number"
+    // } 
+    // // check if number is in range (1-9) and only 1 digit
+    // else if (numberInput < 1 || numberInput > 9 || element.value.length > 1) {
+    //     elementError(element);
+    //     // event.title = '';
+    //     element.title = "Input has to be a digit between 1 and 9"
+    // } 
     // otherwise the input is a valid number
-    else {
+    // else {
         // ALTERNATIVE VALIDATION CHECK
         // if entry is not empty check if it does not conflict with other entries
         // entryValidation(row of entry, column of entry, value of entry)
@@ -55,68 +59,96 @@ table.addEventListener('input', (e) => {
         //             }    
         //         })
 
-        // if entry is set to empty, reset cell value to 0
+    // Entry's indices in the 2D grid
+    let row = parseInt(element.parentElement.parentElement.id);
+    let col = parseInt(element.parentElement.id)
+    // Entry's indices in terms of its block position
+    let blockNum = offset * (Math.floor(row / offset)) + Math.floor(col / offset);  // block the entry belongs to
+    let blockIndex = offset * (row % offset) + col % offset;                        // entry's index in its block  
+
+    // Input is invalid if it is not an integer (with the exception of an empty string)
+    if (!Number.isInteger(numberInput) && element.value !== '') {
+        conflicts.add(rowColToIndex(row, col))
+        elementError(element, "Input has to be a number");
+    }
+    // Input is invalid if it false outside the allowed range (1-9)
+    else if (numberInput < MIN_VALUE || numberInput > MAX_VALUE) {
+        conflicts.add(rowColToIndex(row, col))
+        elementError(element, "Input has to be a digit between 1 and 9");
+
+        // input will be added to arrays as long as it is a number
+        grid[row][col] = numberInput;
+        blocks[blockNum][blockIndex] = numberInput;
+    }
+    // At this point, the input is a valid digit
+    else {
+        // If entry is set to empty, reset cell value to 0
         if (element.value === '') {
             numberInput = 0;
         }
 
-        let row = parseInt(element.parentElement.parentElement.id);
-        let col = parseInt(element.parentElement.id)
-        let blockNum = offset * (Math.floor(row / offset)) + Math.floor(col / offset);  // block the entry belongs to
-        let blockIndex = offset * (row % offset) + col % offset;                        // entry's index in its block  
-
+        // Update the arrays with the new number input
         grid[row][col] = numberInput;
         blocks[blockNum][blockIndex] = numberInput;
 
+        // Check for duplication conflicts if input value is not empty
         if (numberInput !== 0) {
             let error = checkConflict(row, col, blockNum, blockIndex, numberInput);
             if (error) {
-                elementError(element);
-                element.title = 'This number is already present in the same row, column, and/or square'
+                elementError(element, "This number is already present in the same row, column, and/or square");
+            }
+        
+        }
+        // If no error, do nothing
+        // If error is resolved, delete entry from error set
+        else {
+            if (conflicts.has(rowColToIndex(row, col))) {
+                conflicts.delete(rowColToIndex(row, col));
+                elementReset(element);
             }
         }
+    }
 
-        // console.log(conflicts)
+    // Iterate through all conflicts. 
+    // If a cell is no longer in conflict, remove it from the set
+    // If a new cell is in conflict, change its style to error properties
+    for (conflictIndex of conflicts) {
+        const conflictElement = inputs[conflictIndex];
+        const inputValue = parseInt(conflictElement.value);
 
-        // Iterate through all conflicts. 
-        // If a cell is no longer a conflict, remove it from the set
-        // If a new cell is in conflict, change its style back to default
-        for (conflictIndex of conflicts) {
-            let conflictRowCol = indexToRowCol(conflictIndex);
-            let conflictBlock = rowColToBlock(conflictRowCol);
+        // Skip the errors that are not integers or outside the appropriate range
+        if (!Number.isInteger(inputValue) || inputValue < MIN_VALUE || inputValue > MAX_VALUE) { continue; }
 
-            const conflictElement = inputs[conflictIndex];
+        let conflictRowCol = indexToRowCol(conflictIndex);
+        let conflictBlock = rowColToBlock(conflictRowCol);
 
-            let error = checkConflict(conflictRowCol[0], conflictRowCol[1], 
-                                      conflictBlock[0], conflictBlock[1], 
-                                      parseInt(inputs[conflictIndex].value));  // (row, col, blockNum, blockIndex,  value)
-            
-            // This branch executes if the error still persists                       
-            if (error) {
-                // if input style has not been changed to error style already, do so now
-                if (!(conflictElement.style.backgroundColor == errorColour)) {
-                    elementError(conflictElement);
-                    conflictElement.title = 'This number is already present in the same row, column, and/or square.'
-                }
+        // Check for duplication conflict
+        // Parameters: row, col, block number, block index, value
+        let error = checkConflict(conflictRowCol[0], conflictRowCol[1], 
+                                    conflictBlock[0], conflictBlock[1], inputValue); 
+        
+        // This branch executes if the error still persists                       
+        if (error) {
+            // If input style has not been changed to error style already, do so now
+            if (!(conflictElement.style.backgroundColor == errorColour)) {
+                elementError(conflictElement, "This number is already present in the same row, column, and/or square.");
             }
-            // if there is no longer a conflict, remove the cell from conflicts and change back to default style
-            if (!error) {
-                conflicts.delete(conflictIndex);
-                conflictElement.style.backgroundColor = 'white';
-                conflictElement.parentElement.style.backgroundColor = 'white';
-                conflictElement.title = '';
-            } 
-            
         }
+        // If there is no longer a conflict, remove the cell from conflicts and change back to default style
+        if (!error) {
+            conflicts.delete(conflictIndex);
+            elementReset(conflictElement);
+        }  
+    }
 
-        // if all conflicts are resolved or input is empty, reset to default settings
-        if ((conflicts.size === 0 && (hintButton.disabled || solutionButton.disabled)) || numberInput === 0) {
-            element.style.backgroundColor = 'white';
-            element.parentElement.style.backgroundColor = 'white';
-            element.title = '';
-            hintButton.disabled = false;
-            solutionButton.disabled = false;
-        }
+    // If all conflicts are resolved, enable button
+    if ((conflicts.size === 0 && (hintButton.disabled || solutionButton.disabled))) {
+        // element.style.backgroundColor = 'white';
+        // element.parentElement.style.backgroundColor = 'white';
+        // element.title = '';
+        hintButton.disabled = false;
+        solutionButton.disabled = false;
+    }
 
         // if (event.style.backgroundColor == errorColour) {
         //     event.style.backgroundColor = 'white';
@@ -130,7 +162,7 @@ table.addEventListener('input', (e) => {
         //     hintButton.disabled = false;
         //     solutionButton.disabled = false;
         // }    
-    }
+    // }
 })
 
 // If hint button was clicked, hovering over a cell will turn the cell green 
@@ -174,7 +206,6 @@ table.addEventListener('click', (e) => {
             let index = (col * 9) + row;  // index of the cell in "inputs"
             inputs[index].value = String(solvedSudoku.ender[index])
         }
-        
     }
 })
 
@@ -215,11 +246,15 @@ solutionButton.addEventListener('click', (e) => {
     }
 })
 
-
 // Converts 1D index of entry to 2D index
 // Returns list with row index and column index
 function indexToRowCol(index) {
     return [Math.floor(index / size), index % size];
+}
+
+// Converts 2D index of entry to 1D index
+function rowColToIndex(row, col) {
+    return size * row + col;
 }
 
 // Converts from 2D indices to block indices
@@ -266,11 +301,19 @@ function checkConflict(row, col, block, blockIndex, value) {
 }
 
 // If user input is erroneous, this function is called
-function elementError(element) {
+function elementError(element, titleMsg) {
     element.style.setProperty('background-color', errorColour, 'important') // sets background color to error colour with !important tag
     element.parentElement.style.backgroundColor = errorColour;
+    element.title = titleMsg;
+
     hintButton.disabled = true;         // Buttons are disabled until the error is resolved
     solutionButton.disabled = true;
+}
+
+function elementReset(element) {
+    element.style.backgroundColor = 'white'
+    element.parentElement.style.backgroundColor = 'white';
+    element.title = '';
 }
 
 // Sends array of input values to server to solve the Sudoku
